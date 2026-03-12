@@ -1,4 +1,4 @@
-# Kundli Generator (Desktop App)
+## Free Astrology App ## Free Astrology Github Code ## Open Source Astrology App # Kundli Generator (Desktop App) 
 
 ![App Preview](screenshots/app_preview.png)
 
