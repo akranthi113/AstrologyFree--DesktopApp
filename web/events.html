@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Celestial Events & Transits | Cosmic Calendar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f0f4ff;
+      --bg2: #ffffff;
+      --bg3: #e8eeff;
+      --border: rgba(100, 120, 230, 0.18);
+      --border-strong: rgba(100, 120, 230, 0.35);
+      --accent: #4a5ce8;
+      --accent2: #9b5de5;
+      --accent3: #ff9f4a;
+      --text: #1a1e3a;
+      --muted: #6b75a8;
+      --green: #0a9b5c;
+      --red: #d93b3b;
+      --gold: #c8840a;
+      --shadow: 0 2px 12px rgba(74, 92, 232, 0.1);
+      --shadow-hover: 0 6px 24px rgba(74, 92, 232, 0.16);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #ffffff 0%, #eef1ff 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      box-shadow: 0 2px 8px rgba(74, 92, 232, 0.08);
+    }
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    header .subtitle {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+    .nav-back {
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg2);
+      transition: all 0.2s;
+    }
+    .nav-back:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* ── Controls ── */
+    .controls {
+      padding: 20px 40px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      box-shadow: 0 1px 4px rgba(74, 92, 232, 0.06);
+    }
+    .controls label {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* +/- Year Stepper */
+    .year-stepper {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 1.5px solid var(--border-strong);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .year-btn {
+      background: var(--bg3);
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: 700;
+      padding: 0 14px;
+      height: 40px;
+      line-height: 40px;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .year-btn:hover { background: #dce3ff; }
+    .year-btn:active { background: #c8d2ff; }
+    .year-display {
+      background: var(--bg2);
+      border: none;
+      border-left: 1.5px solid var(--border-strong);
+      border-right: 1.5px solid var(--border-strong);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 0 18px;
+      height: 40px;
+      min-width: 76px;
+      text-align: center;
+      outline: none;
+    }
+    /* allow direct typing too */
+    .year-display:focus { background: var(--bg3); }
+
+    .btn-generate {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.92rem;
+      font-weight: 600;
+      padding: 10px 24px;
+      box-shadow: 0 3px 10px rgba(74, 92, 232, 0.3);
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-generate:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-generate:active { opacity: 1; transform: translateY(0); }
+    .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(74, 92, 232, 0.25);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Main content ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 36px 60px;
+    }
+
+    /* ── Summary Cards ── */
+    .summary-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+    .summary-card {
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .summary-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .summary-card.stelliums::before { background: linear-gradient(90deg, #4a5ce8, #9b5de5); }
+    .summary-card.transits::before  { background: linear-gradient(90deg, #0a9b5c, #4a5ce8); }
+    .summary-card.retrogrades::before { background: linear-gradient(90deg, #ff9f4a, #d93b3b); }
+    .summary-card .icon { font-size: 1.8rem; }
+    .summary-card .count { font-size: 2.2rem; font-weight: 700; color: var(--accent); }
+    .summary-card .lbl { font-size: 0.78rem; color: var(--muted); }
+
+    /* ── Section ── */
+    .section { margin-bottom: 40px; }
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+
+    /* ── Cards grid ── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 14px;
+    }
+
+    .event-card {
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.2s;
+    }
+    .event-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--border-strong);
+    }
+
+    /* ⭐ Highlight for big stelliums (6-7 planets) */
+    .event-card.stellium-big {
+      background: linear-gradient(135deg, #fffbea 0%, #fff4d0 100%);
+      border: 2px solid #f5c842;
+      box-shadow: 0 4px 16px rgba(245, 200, 66, 0.3);
+    }
+    .event-card.stellium-big:hover {
+      box-shadow: 0 8px 28px rgba(245, 200, 66, 0.4);
+      border-color: #e0a800;
+    }
+    .super-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(90deg, #f5c842, #ff9f4a);
+      color: #5a3800;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 10px;
+      letter-spacing: 0.3px;
+      margin-bottom: 5px;
+    }
+
+    .event-card .card-date {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    .event-card .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: var(--text);
+    }
+    .event-card .card-body {
+      font-size: 0.83rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Planet badges */
+    .badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .badge {
+      background: rgba(74, 92, 232, 0.08);
+      border: 1px solid rgba(74, 92, 232, 0.2);
+      border-radius: 20px;
+      font-size: 0.7rem;
+      padding: 2px 9px;
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .badge.big {
+      background: rgba(245, 200, 66, 0.15);
+      border-color: rgba(245, 200, 66, 0.5);
+      color: var(--gold);
+    }
+
+    /* Retrograde/Direct */
+    .type-badge {
+      display: inline-block;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .type-retro  { background: rgba(217, 59, 59, 0.1);  color: var(--red); }
+    .type-direct { background: rgba(10, 155, 92, 0.1); color: var(--green); }
+
+    /* Transit arrow */
+    .transit-arrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      margin-top: 6px;
+    }
+    .transit-arrow .from  { color: var(--muted); }
+    .transit-arrow .arrow { color: var(--accent); font-weight: 700; }
+    .transit-arrow .to    { color: var(--green); font-weight: 700; }
+
+    /* Empty / Loading */
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 40px;
+      font-size: 0.9rem;
+      background: var(--bg2);
+      border: 1.5px dashed var(--border);
+      border-radius: 12px;
+    }
+    .loading-state {
+      display: none;
+      text-align: center;
+      color: var(--muted);
+      padding: 60px;
+    }
+    .loading-state .dots::after {
+      content: '';
+      animation: dots 1.5s steps(3, end) infinite;
+    }
+    @keyframes dots {
+      0%   { content: ''; }
+      33%  { content: '.'; }
+      66%  { content: '..'; }
+      100% { content: '...'; }
+    }
+    #status-msg { font-size: 0.82rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🌌 Celestial Events & Transits</h1>
+    <p class="subtitle">Major astrological events, stelliums, and planetary movements for any year</p>
+  </div>
+  <a href="/" class="nav-back">← Kundli Generator</a>
+</header>
+
+<div class="controls">
+  <label>Year:</label>
+
+  <!-- +/- stepper -->
+  <div class="year-stepper">
+    <button class="year-btn" id="btn-minus" onclick="stepYear(-1)">−</button>
+    <input type="number" id="year-input" class="year-display" value="2026" min="1900" max="2100">
+    <button class="year-btn" id="btn-plus" onclick="stepYear(1)">+</button>
+  </div>
+
+  <button class="btn-generate" id="btn-generate" onclick="loadEvents()">
+    ✨ Calculate Events
+  </button>
+  <div class="spinner" id="spinner"></div>
+  <span id="status-msg"></span>
+</div>
+
+<main id="main-content" style="display:none;">
+
+  <!-- Summary cards -->
+  <div class="summary-row">
+    <div class="summary-card stelliums">
+      <div class="icon">✨</div>
+      <div class="count" id="cnt-stelliums">0</div>
+      <div class="lbl">Stelliums (4+ Planets)</div>
+    </div>
+    <div class="summary-card transits">
+      <div class="icon">🪐</div>
+      <div class="count" id="cnt-transits">0</div>
+      <div class="lbl">Major Sign Ingresses</div>
+    </div>
+    <div class="summary-card retrogrades">
+      <div class="icon">↩️</div>
+      <div class="count" id="cnt-retros">0</div>
+      <div class="lbl">Retrograde / Direct Stations</div>
+    </div>
+  </div>
+
+  <!-- Stelliums -->
+  <div class="section">
+    <div class="section-title">✨ Major Stelliums (4+ Planets in Same Sign)
+      <span style="font-size:0.72rem;font-weight:500;color:var(--gold);background:rgba(245,200,66,0.15);border:1px solid rgba(245,200,66,0.4);border-radius:20px;padding:2px 10px;margin-left:6px;">⭐ Gold = 6-7 planets</span>
+    </div>
+    <div class="cards-grid" id="stelliums-grid"></div>
+  </div>
+
+  <!-- Transits -->
+  <div class="section">
+    <div class="section-title">🪐 Slow Planet Sign Ingresses (Jupiter · Saturn · Rahu · Ketu)</div>
+    <div class="cards-grid" id="transits-grid"></div>
+  </div>
+
+  <!-- Retrogrades -->
+  <div class="section">
+    <div class="section-title">↩️ Retrograde & Direct Stations</div>
+    <div class="cards-grid" id="retros-grid"></div>
+  </div>
+
+</main>
+
+<div class="loading-state" id="loading-state">
+  <p style="font-size:1.1rem; color:var(--accent);">Scanning the heavens<span class="dots"></span></p>
+  <p style="margin-top:8px; font-size:0.83rem;">This may take 5–15 seconds</p>
+</div>
+
+<script>
+  const PLANET_SYMBOLS = {
+    Sun:'☉', Moon:'☽', Mars:'♂', Mercury:'☿',
+    Jupiter:'♃', Venus:'♀', Saturn:'♄', Rahu:'☊', Ketu:'☋'
+  };
+
+  function sym(p) { return PLANET_SYMBOLS[p] || p.charAt(0); }
+
+  function fmt(dateStr) {
+    if (!dateStr) return '–';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+  }
+
+  function stepYear(delta) {
+    const inp = document.getElementById('year-input');
+    let v = parseInt(inp.value) || 2026;
+    v = Math.max(1900, Math.min(2100, v + delta));
+    inp.value = v;
+  }
+
+  // Allow Enter key to trigger calculate
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('year-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') loadEvents();
+    });
+  });
+
+  async function loadEvents() {
+    const year = parseInt(document.getElementById('year-input').value);
+    if (!year || year < 1900 || year > 2100) {
+      alert('Please enter a valid year between 1900 and 2100');
+      return;
+    }
+    const btn = document.getElementById('btn-generate');
+    const spinner = document.getElementById('spinner');
+    const statusMsg = document.getElementById('status-msg');
+    const mainContent = document.getElementById('main-content');
+    const loadingState = document.getElementById('loading-state');
+
+    btn.disabled = true;
+    spinner.style.display = 'block';
+    statusMsg.textContent = '';
+    mainContent.style.display = 'none';
+    loadingState.style.display = 'block';
+
+    try {
+      const res = await fetch(`/api/events/${year}`);
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt);
+      }
+      const data = await res.json();
+      if (data.error) {
+        statusMsg.textContent = '⚠️ ' + data.error.split('\n').slice(-2).join(' ');
+        return;
+      }
+      populate(data);
+      loadingState.style.display = 'none';
+      mainContent.style.display = 'block';
+      statusMsg.textContent = `Showing events for ${year}`;
+    } catch (e) {
+      statusMsg.textContent = '⚠️ ' + e.message;
+      loadingState.style.display = 'none';
+    } finally {
+      btn.disabled = false;
+      spinner.style.display = 'none';
+    }
+  }
+
+  function populate(data) {
+    document.getElementById('cnt-stelliums').textContent = data.stelliums.length;
+    document.getElementById('cnt-transits').textContent  = data.transits.length;
+    document.getElementById('cnt-retros').textContent    = data.retrogrades.length;
+
+    // ── Stelliums ──
+    const sg = document.getElementById('stelliums-grid');
+    sg.innerHTML = '';
+    if (!data.stelliums.length) {
+      sg.innerHTML = '<p class="empty">No major stelliums (4+ planets) found for this year.</p>';
+    } else {
+      data.stelliums.forEach(s => {
+        const count  = s.peak_planets ? s.peak_planets.length : s.planets.length;
+        const isBig  = count >= 6;
+        const card   = document.createElement('div');
+        card.className = 'event-card' + (isBig ? ' stellium-big' : '');
+
+        // Use peak_planets (simultaneous) for badges, fall back to planets
+        const showPlanets = s.peak_planets || s.planets;
+        const planetsHTML = showPlanets.map(p =>
+          `<span class="badge${isBig ? ' big' : ''}">${sym(p)} ${p}</span>`
+        ).join('');
+
+        const peakDate  = s.peak_date  || s.start_date;
+        const startDate = s.start_date;
+        const endDate   = s.end_date   || s.start_date;
+
+        card.innerHTML = `
+          ${isBig ? `<div class="super-badge">⭐ Rare ${count}-Planet Stellium</div>` : ''}
+          <div class="card-date" style="font-size:0.72rem;color:var(--muted);">
+            Active: ${fmt(startDate)} — ${fmt(endDate)}
+          </div>
+          <div class="card-title">${count} Planets in ${s.sign}</div>
+          <div style="margin:6px 0 4px;padding:6px 10px;background:rgba(74,92,232,0.07);border-radius:8px;font-size:0.82rem;">
+            📅 <strong>Peak date:</strong> ${fmt(peakDate)}
+          </div>
+          <div class="badges">${planetsHTML}</div>
+        `;
+        sg.appendChild(card);
+      });
+    }
+
+    // ── Transits ──
+    const tg = document.getElementById('transits-grid');
+    tg.innerHTML = '';
+    if (!data.transits.length) {
+      tg.innerHTML = '<p class="empty">No major sign ingresses found for this year.</p>';
+    } else {
+      data.transits.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'event-card';
+        card.innerHTML = `
+          <div class="card-date">${fmt(t.date)}</div>
+          <div class="card-title">${sym(t.planet)} ${t.planet} enters a new sign</div>
+          <div class="transit-arrow">
+            <span class="from">${t.from_sign}</span>
+            <span class="arrow">→</span>
+            <span class="to">${t.to_sign}</span>
+          </div>
+        `;
+        tg.appendChild(card);
+      });
+    }
+
+    // ── Retrogrades ──
+    const rg = document.getElementById('retros-grid');
+    rg.innerHTML = '';
+    if (!data.retrogrades.length) {
+      rg.innerHTML = '<p class="empty">No retrograde stations detected for this year.</p>';
+    } else {
+      data.retrogrades.forEach(r => {
+        const isRetro = r.type === 'Retrograde';
+        const card = document.createElement('div');
+        card.className = 'event-card';
+        card.innerHTML = `
+          <div class="card-date">${fmt(r.date)}</div>
+          <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+            ${sym(r.planet)} ${r.planet}
+            <span class="type-badge ${isRetro ? 'type-retro' : 'type-direct'}">${r.type}</span>
+          </div>
+          <div class="card-body">In ${r.sign}</div>
+        `;
+        rg.appendChild(card);
+      });
+    }
+  }
+</script>
+</body>
+</html>
